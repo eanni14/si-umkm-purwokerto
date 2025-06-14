@@ -30,8 +30,13 @@ export default function AdminLoginPage() {
             
             router.push('/admin/dashboard');
 
-        } catch (err: any) {
-            setError(err.message);
+        // PERBAIKAN: Mengganti 'any' dengan 'unknown' dan melakukan pengecekan tipe
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError('Terjadi kesalahan yang tidak diketahui.');
+            }
         } finally {
             setLoading(false);
         }
