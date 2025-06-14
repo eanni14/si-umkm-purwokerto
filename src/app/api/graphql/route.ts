@@ -1,3 +1,5 @@
+// src/app/api/graphql/route.ts
+
 import { ApolloServer } from '@apollo/server';
 import { startServerAndCreateNextHandler } from '@as-integrations/next';
 import { collection, query, where, getDocs } from 'firebase/firestore';
@@ -21,12 +23,9 @@ const typeDefs = `#graphql
 
 const resolvers = {
   Query: {
-    // PERBAIKAN: Memberikan tipe yang sesuai untuk parameter yang tidak digunakan
     searchProducts: async (_: unknown, { term }: { term: string }) => {
       try {
-        if (!term) {
-          return [];
-        }
+        if (!term) return [];
         
         const productsRef = collection(db, 'products');
         const q = query(
@@ -36,7 +35,7 @@ const resolvers = {
         );
 
         const querySnapshot = await getDocs(q);
-        const products: object[] = []; // Memberikan tipe object[] yang lebih spesifik
+        const products: object[] = [];
         querySnapshot.forEach((doc) => {
           products.push({ id: doc.id, ...doc.data() });
         });
@@ -55,9 +54,17 @@ const server = new ApolloServer({
   resolvers,
 });
 
+// Buat handler sekali
 const handler = startServerAndCreateNextHandler<NextRequest>(server, {
-    // PERBAIKAN: Memberikan tipe NextRequest pada parameter 'req'
     context: async (req: NextRequest) => ({ req }),
 });
 
-export { handler as GET, handler as POST };
+// PERBAIKAN: Ekspor fungsi GET dan POST secara eksplisit
+// Ini memastikan tipe data yang diekspor sesuai dengan yang diharapkan oleh Next.js
+export async function GET(request: NextRequest) {
+  return handler(request);
+}
+
+export async function POST(request: NextRequest) {
+  return handler(request);
+}
