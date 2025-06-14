@@ -1,25 +1,20 @@
-// src/app/api/products/[productId]/route.ts
-
 import { NextRequest, NextResponse } from 'next/server';
 import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import DOMPurify from 'dompurify';
 import { JSDOM } from 'jsdom';
 
-// Setup DOMPurify untuk sanitasi
+// Setup DOMPurify untuk sanitasi input
 const window = new JSDOM('').window;
 const purify = DOMPurify(window);
 
-// Tipe context Next.js
-type Context = { params: { productId: string } };
-
-// Handler GET (ambil 1 produk)
+// GET handler - ambil produk by ID
 export async function GET(
-  req: NextRequest,
-  context: Context
+  request: NextRequest,
+  { params }: { params: { productId: string } }
 ) {
   try {
-    const { productId } = context.params;
+    const { productId } = params;
 
     if (!productId) {
       return NextResponse.json({ message: 'Product ID tidak ditemukan' }, { status: 400 });
@@ -34,25 +29,21 @@ export async function GET(
 
     return NextResponse.json({ id: docSnap.id, ...docSnap.data() }, { status: 200 });
 
-  } catch (error: unknown) {
-    console.error("Error getting document:", error);
+  } catch (error) {
+    console.error("GET error:", error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
 
-// Handler PUT (update produk)
+// PUT handler - update produk
 export async function PUT(
-  req: NextRequest,
-  context: Context
+  request: NextRequest,
+  { params }: { params: { productId: string } }
 ) {
   try {
-    const { productId } = context.params;
-    const body = await req.json();
+    const { productId } = params;
+    const body = await request.json();
     const { name, description, price } = body;
-
-    if (!productId) {
-      return NextResponse.json({ message: 'Product ID tidak ditemukan' }, { status: 400 });
-    }
 
     if (!name || !description || !price) {
       return NextResponse.json({ message: 'Data tidak lengkap' }, { status: 400 });
@@ -65,36 +56,32 @@ export async function PUT(
     await updateDoc(productRef, {
       name: sanitizedName,
       description: sanitizedDescription,
-      price
+      price,
     });
 
     return NextResponse.json({ message: 'Produk berhasil diperbarui' }, { status: 200 });
 
-  } catch (error: unknown) {
-    console.error("Error updating document:", error);
+  } catch (error) {
+    console.error("PUT error:", error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
 
-// Handler DELETE (hapus produk)
+// DELETE handler - hapus produk
 export async function DELETE(
-  req: NextRequest,
-  context: Context
+  request: NextRequest,
+  { params }: { params: { productId: string } }
 ) {
   try {
-    const { productId } = context.params;
-
-    if (!productId) {
-      return NextResponse.json({ message: 'Product ID tidak ditemukan' }, { status: 400 });
-    }
+    const { productId } = params;
 
     const productRef = doc(db, 'products', productId);
     await deleteDoc(productRef);
 
     return NextResponse.json({ message: 'Produk berhasil dihapus' }, { status: 200 });
 
-  } catch (error: unknown) {
-    console.error("Error deleting document:", error);
+  } catch (error) {
+    console.error("DELETE error:", error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
