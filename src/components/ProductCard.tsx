@@ -1,11 +1,10 @@
 // src/components/ProductCard.tsx
 
 import Image from 'next/image';
+import Link from 'next/link';
 import type { Product } from '@/types/product';
 
-// Gunakan 'Pick' untuk memilih hanya properti yang dibutuhkan
-type ProductCardProps = Pick<Product, 'id' | 'name' | 'storeName' | 'price' | 'imageUrl' | 'averageRating' | 'reviewCount'>;
-
+// Komponen kecil untuk menampilkan bintang
 const StarRating = ({ rating }: { rating: number }) => {
     return (
         <div className="flex items-center">
@@ -18,28 +17,37 @@ const StarRating = ({ rating }: { rating: number }) => {
     );
 };
 
+// Gunakan 'Pick' untuk memilih hanya properti yang dibutuhkan dari tipe Product
+type ProductCardProps = Pick<Product, 'id' | 'name' | 'storeName' | 'price' | 'imageUrl' | 'averageRating' | 'reviewCount'>;
+
 const ProductCard = ({ id, name, storeName, price, imageUrl, averageRating = 0, reviewCount = 0 }: ProductCardProps) => {
   const imageSrc = imageUrl || `https://placehold.co/400x300/e2e8f0/334155?text=${encodeURIComponent(name)}`;
 
   return (
-    <a href={`/produk/${id}`} className="block group">
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden transform group-hover:-translate-y-2 transition-transform duration-300">
+    <Link href={`/produk/${id}`} className="block group">
+      <div className="bg-white rounded-lg shadow-lg overflow-hidden transform group-hover:-translate-y-2 transition-transform duration-300 h-full flex flex-col">
         <div className="relative w-full h-48">
-          <Image src={imageSrc} alt={name} layout="fill" objectFit="cover" onError={(e) => { e.currentTarget.src = `https://placehold.co/400x300/e2e8f0/334155?text=Error`; }} />
+          <Image 
+            src={imageSrc} 
+            alt={name} 
+            layout="fill" 
+            objectFit="cover" 
+            onError={(e) => { e.currentTarget.src = `https://placehold.co/400x300/e2e8f0/334155?text=Error`; }} 
+          />
         </div>
-        <div className="p-4">
+        <div className="p-4 flex flex-col flex-grow">
           <h4 className="text-lg font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">{name}</h4>
           <p className="text-gray-500 text-sm mb-2">{storeName || 'Toko UMKM'}</p>
           <div className="flex items-center mb-2">
               <StarRating rating={averageRating} />
               <span className="text-xs text-gray-500 ml-2">({reviewCount} ulasan)</span>
           </div>
-          <p className="text-lg font-bold text-gray-800">
+          <p className="text-lg font-bold text-gray-800 mt-auto">
               {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(price)}
           </p>
         </div>
       </div>
-    </a>
+    </Link>
   );
 };
 
