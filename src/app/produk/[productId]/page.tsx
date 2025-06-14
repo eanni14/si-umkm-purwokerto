@@ -13,7 +13,7 @@ type Review = {
   userName: string;
   rating: number;
   comment: string;
-  createdAt: any; // Dibiarkan any untuk sementara karena tipe Timestamp bisa kompleks
+  createdAt: unknown; // Dibiarkan any untuk sementara karena tipe Timestamp bisa kompleks
 };
 
 const StarRatingInput = ({ rating, setRating }: { rating: number, setRating: (r: number) => void }) => {
