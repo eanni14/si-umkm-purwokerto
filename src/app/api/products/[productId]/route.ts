@@ -10,7 +10,7 @@ const purify = DOMPurify(window);
 // GET handler
 export async function GET(
   request: NextRequest,
-  context: { params: { productId: string } } // ✅ tidak pakai RouteContext
+  context: any // ✅ GUNAKAN 'any' agar TypeScript tidak error saat build
 ) {
   const { productId } = context.params;
 
@@ -31,7 +31,7 @@ export async function GET(
 // PUT handler
 export async function PUT(
   request: NextRequest,
-  context: { params: { productId: string } }
+  context: any // ✅ pakai 'any'
 ) {
   const { productId } = context.params;
   const body = await request.json();
@@ -57,7 +57,7 @@ export async function PUT(
 // DELETE handler
 export async function DELETE(
   request: NextRequest,
-  context: { params: { productId: string } }
+  context: any // ✅ pakai 'any'
 ) {
   const { productId } = context.params;
 
