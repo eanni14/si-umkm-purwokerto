@@ -5,6 +5,7 @@ import { db } from '@/lib/firebase';
 import type { Product } from '@/types/product';
 import { notFound } from 'next/navigation';
 import ProductImage from '@/components/ProductImage';
+import Link from 'next/link'; // PERBAIKAN: Impor komponen Link
 
 export async function generateStaticParams() {
   try {
@@ -14,7 +15,6 @@ export async function generateStaticParams() {
       productId: doc.id,
     }));
     return products;
-  // PERBAIKAN: Memberikan tipe 'unknown' pada error
   } catch (error: unknown) {
     console.error("Gagal membuat parameter statis:", error);
     return [];
@@ -29,7 +29,6 @@ async function getProductData(productId: string): Promise<Product | null> {
       return { id: docSnap.id, ...docSnap.data() } as Product;
     }
     return null;
-  // PERBAIKAN: Memberikan tipe 'unknown' pada error
   } catch (error: unknown) {
     console.error("Gagal mengambil data produk:", error);
     return null;
@@ -49,8 +48,9 @@ export default async function ProductDetailPage({ params }: { params: { productI
     <div className="bg-gray-50 min-h-screen">
        <header className="bg-white shadow-sm">
           <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="/" className="text-2xl font-bold text-blue-600">Si-UMKM Purwokerto</a>
-            <a href="/#products" className="text-blue-600 hover:underline">&larr; Kembali ke Katalog</a>
+            {/* PERBAIKAN: Menggunakan komponen Link */}
+            <Link href="/" className="text-2xl font-bold text-blue-600">Si-UMKM Purwokerto</Link>
+            <Link href="/#products" className="text-blue-600 hover:underline">&larr; Kembali ke Katalog</Link>
           </div>
        </header>
 
