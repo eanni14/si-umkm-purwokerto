@@ -9,13 +9,10 @@ import { JSDOM } from 'jsdom';
 const window = new JSDOM('').window;
 const purify = DOMPurify(window);
 
-// Handler untuk GET (Mengambil satu produk)
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { productId: string } } // PERBAIKAN FINAL: Menggunakan destructuring langsung dengan tipe inline
-) {
+/// GET - ambil satu produk
+export async function GET(req: NextRequest, context: { params: { productId: string } }) {
   try {
-    const { productId } = params;
+    const { productId } = context.params;
     if (!productId) {
       return NextResponse.json({ message: 'Product ID tidak ditemukan' }, { status: 400 });
     }
@@ -36,21 +33,16 @@ export async function GET(
 }
 
 // Handler untuk PUT (Memperbarui produk)
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { productId: string } } // PERBAIKAN FINAL
-) {
+export async function PUT(req: NextRequest, context: { params: { productId: string } }) {
   try {
-    const { productId } = params;
-    const body = await request.json();
+    const { productId } = context.params;
+    const body = await req.json();
     const { name, description, price } = body;
 
-    if (!productId) {
-      return NextResponse.json({ message: 'Product ID tidak ditemukan' }, { status: 400 });
-    }
-    if (!name || !description || !price) {
+    if (!productId || !name || !description || !price) {
       return NextResponse.json({ message: 'Data tidak lengkap' }, { status: 400 });
     }
+
 
     const sanitizedName = purify.sanitize(name);
     const sanitizedDescription = purify.sanitize(description);
@@ -71,12 +63,9 @@ export async function PUT(
 }
 
 // Handler untuk metode DELETE
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { productId: string } } // PERBAIKAN FINAL
-) {
+export async function DELETE(req: NextRequest, context: { params: { productId: string } }) {
   try {
-    const { productId } = params;
+    const { productId } = context.params;
     if (!productId) {
       return NextResponse.json({ message: 'Product ID tidak ditemukan' }, { status: 400 });
     }
@@ -91,3 +80,4 @@ export async function DELETE(
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
+  
