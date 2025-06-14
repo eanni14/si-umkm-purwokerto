@@ -7,17 +7,15 @@ import { useAuth } from '@/context/AuthContext';
 import { useParams, notFound, useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-// Definisikan tipe untuk Ulasan
 type Review = {
   id: string;
   userId: string;
   userName: string;
   rating: number;
   comment: string;
-  createdAt: any;
+  createdAt: any; // Dibiarkan any untuk sementara karena tipe Timestamp bisa kompleks
 };
 
-// Komponen untuk input bintang rating
 const StarRatingInput = ({ rating, setRating }: { rating: number, setRating: (r: number) => void }) => {
     return (
         <div className="flex items-center">
@@ -34,7 +32,6 @@ const StarRatingInput = ({ rating, setRating }: { rating: number, setRating: (r:
     );
 };
 
-
 export default function ProductDetailPage() {
   const params = useParams();
   const productId = params.productId as string;
@@ -50,7 +47,6 @@ export default function ProductDetailPage() {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
 
-  // Dibuat sebagai fungsi terpisah agar bisa dipanggil ulang
   const fetchAllData = useCallback(async () => {
       if (!productId) return;
       setLoading(true);
@@ -66,7 +62,8 @@ export default function ProductDetailPage() {
         
         setProduct(productData);
         setReviews(reviewsData);
-      } catch (error) {
+      // PERBAIKAN: Mengganti 'any' dengan 'unknown'
+      } catch (error: unknown) {
         console.error(error);
         setProduct(null);
       } finally {
@@ -78,6 +75,7 @@ export default function ProductDetailPage() {
     fetchAllData();
   }, [fetchAllData]);
 
+  // ... (sisa kode tetap sama) ...
   const handleReviewSubmit = async (e: FormEvent) => {
       e.preventDefault();
       if (newRating === 0 || !newComment.trim()) { setFormError('Rating dan komentar harus diisi.'); return; }
@@ -91,7 +89,7 @@ export default function ProductDetailPage() {
               body: JSON.stringify({ productId, userId: user.uid, userName: user.email?.split('@')[0] || 'Anonim', rating: newRating, comment: newComment, })
           });
           if (!response.ok) throw new Error('Gagal mengirim ulasan.');
-          await fetchAllData(); // Re-fetch semua data untuk sinkronisasi
+          await fetchAllData();
           setNewComment(''); setNewRating(0);
       } catch (error: unknown) {
           if(error instanceof Error) setFormError(error.message);
@@ -101,25 +99,19 @@ export default function ProductDetailPage() {
   };
   
   const handleDeleteReview = async (reviewId: string) => {
-    if(!user) {
-        alert("Anda harus login untuk menghapus ulasan.");
-        return;
-    }
-    // Ganti window.confirm dengan UI custom jika diperlukan
+    if(!user) { alert("Anda harus login untuk menghapus ulasan."); return; }
     if(!confirm("Apakah Anda yakin ingin menghapus ulasan ini?")) return;
-
     try {
         const response = await fetch(`/api/reviews/${reviewId}`, {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId: user.uid })
         });
-
         if(!response.ok) {
             const data = await response.json();
             throw new Error(data.message || "Gagal menghapus ulasan.");
         }
-        await fetchAllData(); // Re-fetch semua data untuk sinkronisasi
+        await fetchAllData();
     } catch (error: unknown) {
         if(error instanceof Error) alert(error.message);
     }
@@ -127,7 +119,6 @@ export default function ProductDetailPage() {
 
   if (loading) return <div className="text-center mt-20">Memuat produk...</div>;
   if (!product) return notFound();
-
   const imageSrc = product.imageUrl || `https://placehold.co/800x600/e2e8f0/334155?text=${encodeURIComponent(product.name)}`;
 
   return (
