@@ -1,21 +1,25 @@
-import { NextResponse } from 'next/server';
+// src/app/api/products/[productId]/route.ts
+
+import { NextResponse, NextRequest } from 'next/server';
 import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { db } from '../../../../lib/firebase';
+import { db } from '@/lib/firebase';
 import DOMPurify from 'dompurify';
 import { JSDOM } from 'jsdom';
 
-// Inisialisasi DOMPurify untuk lingkungan server (Node.js)
 const window = new JSDOM('').window;
 const purify = DOMPurify(window);
 
+// Definisikan tipe untuk context parameter
+type RouteContext = {
+    params: {
+        productId: string;
+    };
+};
 
 // Handler untuk GET (Mengambil satu produk)
-export async function GET(
-  request: Request,
-  { params }: { params: { productId: string } }
-) {
+export async function GET(request: NextRequest, context: RouteContext) {
   try {
-    const productId = params.productId;
+    const { productId } = context.params; // PERBAIKAN: Ambil productId dari context
     if (!productId) {
       return NextResponse.json({ message: 'Product ID tidak ditemukan' }, { status: 400 });
     }
@@ -36,12 +40,9 @@ export async function GET(
 }
 
 // Handler untuk PUT (Memperbarui produk)
-export async function PUT(
-  request: Request,
-  { params }: { params: { productId: string } }
-) {
+export async function PUT(request: NextRequest, context: RouteContext) {
   try {
-    const productId = params.productId;
+    const { productId } = context.params; // PERBAIKAN
     const body = await request.json();
     const { name, description, price } = body;
 
@@ -52,7 +53,6 @@ export async function PUT(
       return NextResponse.json({ message: 'Data tidak lengkap' }, { status: 400 });
     }
 
-    // SANITASI INPUT: Bersihkan data sebelum diperbarui
     const sanitizedName = purify.sanitize(name);
     const sanitizedDescription = purify.sanitize(description);
 
@@ -72,12 +72,9 @@ export async function PUT(
 }
 
 // Handler untuk metode DELETE
-export async function DELETE(
-  request: Request,
-  { params }: { params: { productId: string } }
-) {
+export async function DELETE(request: NextRequest, context: RouteContext) {
   try {
-    const productId = params.productId;
+    const { productId } = context.params; // PERBAIKAN
     if (!productId) {
       return NextResponse.json({ message: 'Product ID tidak ditemukan' }, { status: 400 });
     }
