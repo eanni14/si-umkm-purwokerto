@@ -1,0 +1,50 @@
+# .github/workflows/ci.yml
+
+name: SI-UMKM CI Pipeline
+
+# Kapan workflow ini akan berjalan
+on:
+  # Saat ada push ke branch 'main'
+  push:
+    branches: [ "main" ]
+  # Saat ada Pull Request yang ditujukan ke branch 'main'
+  pull_request:
+    branches: [ "main" ]
+
+# Daftar pekerjaan (jobs) yang akan dijalankan
+jobs:
+  # Nama job: build-and-test
+  build-and-test:
+    # Sistem operasi yang digunakan
+    runs-on: ubuntu-latest
+
+    # Langkah-langkah (steps) yang akan dieksekusi
+    steps:
+      # 1. Meng-checkout kode dari repositori
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Setup Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm' # Mengaktifkan caching untuk npm agar instalasi lebih cepat
+
+      # 3. Install dependensi proyek
+      - name: Install dependencies
+        run: npm ci # 'ci' lebih cepat dan lebih aman untuk CI daripada 'install'
+
+      # 4. Menjalankan Linting untuk memeriksa kualitas kode
+      #    Pastikan Anda memiliki skrip "lint" di package.json
+      - name: Run ESLint
+        run: npm run lint
+
+      # 5. Menjalankan build aplikasi untuk memastikan tidak ada error saat kompilasi
+      - name: Build application
+        run: npm run build
+
+      # 6. Menjalankan Testing (jika ada)
+      #    Langkah ini bisa diaktifkan jika Anda sudah menulis unit test atau integration test
+      # - name: Run tests
+      #   run: npm run test
