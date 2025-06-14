@@ -9,17 +9,16 @@ import { JSDOM } from 'jsdom';
 const window = new JSDOM('').window;
 const purify = DOMPurify(window);
 
-// Definisikan tipe untuk context parameter
-type RouteContext = {
-    params: {
-        productId: string;
-    };
-};
+// PERBAIKAN: Menghapus tipe RouteContext yang custom
 
 // Handler untuk GET (Mengambil satu produk)
-export async function GET(request: NextRequest, context: RouteContext) {
+// PERBAIKAN: Mendefinisikan tipe parameter secara inline
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { productId: string } }
+) {
   try {
-    const { productId } = context.params; // PERBAIKAN: Ambil productId dari context
+    const { productId } = params;
     if (!productId) {
       return NextResponse.json({ message: 'Product ID tidak ditemukan' }, { status: 400 });
     }
@@ -33,16 +32,19 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     return NextResponse.json({ id: docSnap.id, ...docSnap.data() }, { status: 200 });
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error getting document:", error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
 
 // Handler untuk PUT (Memperbarui produk)
-export async function PUT(request: NextRequest, context: RouteContext) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { productId: string } }
+) {
   try {
-    const { productId } = context.params; // PERBAIKAN
+    const { productId } = params;
     const body = await request.json();
     const { name, description, price } = body;
 
@@ -65,16 +67,19 @@ export async function PUT(request: NextRequest, context: RouteContext) {
 
     return NextResponse.json({ message: 'Produk berhasil diperbarui' }, { status: 200 });
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error updating document:", error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
 
 // Handler untuk metode DELETE
-export async function DELETE(request: NextRequest, context: RouteContext) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { productId: string } }
+) {
   try {
-    const { productId } = context.params; // PERBAIKAN
+    const { productId } = params;
     if (!productId) {
       return NextResponse.json({ message: 'Product ID tidak ditemukan' }, { status: 400 });
     }
@@ -84,8 +89,8 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
 
     return NextResponse.json({ message: 'Produk berhasil dihapus' }, { status: 200 });
   
-  } catch (error) {
-    console.error("Error deleting document: ", error);
+  } catch (error: unknown) {
+    console.error("Error deleting document:", error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
