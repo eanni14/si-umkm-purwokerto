@@ -1,18 +1,14 @@
 'use client';
 
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect, FormEvent, useCallback } from 'react'; // PERBAIKAN: Impor useCallback
 import type { Product } from '@/types/product';
 import ProductImage from '@/components/ProductImage';
 import { useAuth } from '@/context/AuthContext';
-import { useParams, notFound } from 'next/navigation';
+import { useParams, notFound, useRouter } from 'next/navigation'; // PERBAIKAN: Impor useRouter
+import Link from 'next/link'; // PERBAIKAN: Impor Link
 
 type Review = {
-  id: string;
-  userId: string; // Tambahkan userId untuk verifikasi
-  userName: string;
-  rating: number;
-  comment: string;
-  createdAt: any;
+  id: string; userId: string; userName: string; rating: number; comment: string; createdAt: any;
 };
 
 const StarRatingInput = ({ rating, setRating }: { rating: number, setRating: (r: number) => void }) => {
@@ -31,11 +27,11 @@ const StarRatingInput = ({ rating, setRating }: { rating: number, setRating: (r:
     );
 };
 
-
 export default function ProductDetailPage() {
   const params = useParams();
   const productId = params.productId as string;
   const { user } = useAuth();
+  const router = useRouter(); // PERBAIKAN: Tambahkan router
   
   const [product, setProduct] = useState<Product | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -46,7 +42,8 @@ export default function ProductDetailPage() {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
 
-  const fetchAllData = async () => {
+  // PERBAIKAN: Gunakan useCallback untuk menghindari warning exhaustive-deps
+  const fetchAllData = useCallback(async () => {
       if (!productId) return;
       setLoading(true);
       try {
@@ -55,28 +52,26 @@ export default function ProductDetailPage() {
           fetch(`/api/reviews?productId=${productId}`)
         ]);
         if (!productRes.ok) throw new Error('Produk tidak ditemukan');
-        
         const productData = await productRes.json();
         const reviewsData = await reviewsRes.json();
-        
         setProduct(productData);
         setReviews(reviewsData);
-      } catch (error) {
+      } catch (error: unknown) { // PERBAIKAN
         console.error(error);
         setProduct(null);
       } finally {
         setLoading(false);
       }
-  };
+  }, [productId]);
 
   useEffect(() => {
     fetchAllData();
-  }, [productId]);
+  }, [fetchAllData]); // PERBAIKAN
 
   const handleReviewSubmit = async (e: FormEvent) => {
       e.preventDefault();
       if (newRating === 0 || !newComment.trim()) { setFormError('Rating dan komentar harus diisi.'); return; }
-      if (!user) { setFormError('Anda harus login untuk memberikan ulasan.'); return; }
+      if (!user) { router.push('/login'); return; }
       setSubmitting(true);
       setFormError('');
       try {
@@ -86,60 +81,49 @@ export default function ProductDetailPage() {
               body: JSON.stringify({ productId, userId: user.uid, userName: user.email?.split('@')[0] || 'Anonim', rating: newRating, comment: newComment, })
           });
           if (!response.ok) throw new Error('Gagal mengirim ulasan.');
-          await fetchAllData(); // Re-fetch data untuk sinkronisasi
-          setNewComment('');
-          setNewRating(0);
-      } catch (error: any) {
-          setFormError(error.message);
+          await fetchAllData();
+          setNewComment(''); setNewRating(0);
+      } catch (error: unknown) { // PERBAIKAN
+          if(error instanceof Error) setFormError(error.message);
       } finally {
           setSubmitting(false);
       }
   };
   
-  // Fungsi untuk menghapus ulasan
   const handleDeleteReview = async (reviewId: string) => {
-    if(!user) {
-        alert("Anda harus login untuk menghapus ulasan.");
-        return;
-    }
-    // Ganti window.confirm dengan UI custom jika diperlukan
-    if(!confirm("Apakah Anda yakin ingin menghapus ulasan ini?")) {
-        return;
-    }
-
+    if(!user) { alert("Anda harus login untuk menghapus ulasan."); return; }
+    if(!confirm("Apakah Anda yakin ingin menghapus ulasan ini?")) return;
     try {
         const response = await fetch(`/api/reviews/${reviewId}`, {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: user.uid }) // Kirim userId untuk verifikasi di backend
+            body: JSON.stringify({ userId: user.uid })
         });
-
         if(!response.ok) {
             const data = await response.json();
             throw new Error(data.message || "Gagal menghapus ulasan.");
         }
-        
-        // Update UI setelah berhasil
         setReviews(reviews.filter(r => r.id !== reviewId));
-        // Re-fetch data produk untuk update rating
         const productRes = await fetch(`/api/products/${productId}`);
         const productData = await productRes.json();
         setProduct(productData);
-
-    } catch (error: any) {
-        alert(error.message);
+    } catch (error: unknown) { // PERBAIKAN
+        if(error instanceof Error) alert(error.message);
     }
   };
 
   if (loading) return <div className="text-center mt-20">Memuat produk...</div>;
   if (!product) return notFound();
-
   const imageSrc = product.imageUrl || `https://placehold.co/800x600/e2e8f0/334155?text=${encodeURIComponent(product.name)}`;
 
   return (
     <div className="bg-gray-50 min-h-screen">
        <header className="bg-white shadow-sm">
-          <div className="container mx-auto px-6 py-4 flex justify-between items-center"><a href="/" className="text-2xl font-bold text-blue-600">Si-UMKM Purwokerto</a><a href="/#products" className="text-blue-600 hover:underline">&larr; Kembali ke Katalog</a></div>
+          <div className="container mx-auto px-6 py-4 flex justify-between items-center">
+            {/* PERBAIKAN: Menggunakan Link */}
+            <Link href="/" className="text-2xl font-bold text-blue-600">Si-UMKM Purwokerto</Link>
+            <Link href="/#products" className="text-blue-600 hover:underline">&larr; Kembali ke Katalog</Link>
+          </div>
        </header>
        <main className="container mx-auto p-4 sm:p-8">
             <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
@@ -163,18 +147,10 @@ export default function ProductDetailPage() {
                                 <div key={review.id} className="border-b pb-4">
                                     <div className="flex justify-between items-start">
                                         <div>
-                                            <div className="flex items-center mb-1">
-                                                <p className="font-semibold text-gray-900">{review.userName}</p>
-                                                <div className="ml-4"><StarRatingInput rating={review.rating} setRating={() => {}} /></div>
-                                            </div>
+                                            <div className="flex items-center mb-1"><p className="font-semibold text-gray-900">{review.userName}</p><div className="ml-4"><StarRatingInput rating={review.rating} setRating={() => {}} /></div></div>
                                             <p className="text-gray-900">{review.comment}</p>
                                         </div>
-                                        {/* Tombol Hapus hanya muncul untuk pemilik ulasan */}
-                                        {user && user.uid === review.userId && (
-                                            <button onClick={() => handleDeleteReview(review.id)} className="text-xs text-red-500 hover:text-red-700">
-                                                Hapus
-                                            </button>
-                                        )}
+                                        {user && user.uid === review.userId && (<button onClick={() => handleDeleteReview(review.id)} className="text-xs text-red-500 hover:text-red-700">Hapus</button>)}
                                     </div>
                                 </div>
                             )) : <p className="text-gray-500">Belum ada ulasan untuk produk ini.</p>}
@@ -186,22 +162,12 @@ export default function ProductDetailPage() {
                         <h2 className="text-2xl font-bold text-gray-900 mb-4">Beri Ulasan</h2>
                         {user ? (
                             <form onSubmit={handleReviewSubmit}>
-                                <div className="mb-4">
-                                    <p className="font-medium mb-2 text-gray-900">Rating Anda:</p>
-                                    <StarRatingInput rating={newRating} setRating={setNewRating} />
-                                </div>
-                                <div className="mb-4">
-                                    <label htmlFor="comment" className="block font-medium mb-1 text-gray-900">Komentar:</label>
-                                    <textarea id="comment" rows={4} value={newComment} onChange={(e) => setNewComment(e.target.value)} 
-                                    className="w-full p-2 border rounded-md text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500" 
-                                    placeholder="Bagaimana pendapat Anda tentang produk ini?"/>
-                                </div>
+                                <div className="mb-4"><p className="font-medium mb-2 text-gray-900">Rating Anda:</p><StarRatingInput rating={newRating} setRating={setNewRating} /></div>
+                                <div className="mb-4"><label htmlFor="comment" className="block font-medium mb-1 text-gray-900">Komentar:</label><textarea id="comment" rows={4} value={newComment} onChange={(e) => setNewComment(e.target.value)} className="w-full p-2 border rounded-md text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Bagaimana pendapat Anda tentang produk ini?"/></div>
                                 {formError && <p className="text-red-500 text-sm mb-4">{formError}</p>}
-                                <button type="submit" disabled={submitting} className="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 disabled:bg-blue-400">
-                                    {submitting ? 'Mengirim...' : 'Kirim Ulasan'}
-                                </button>
+                                <button type="submit" disabled={submitting} className="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 disabled:bg-blue-400">{submitting ? 'Mengirim...' : 'Kirim Ulasan'}</button>
                             </form>
-                        ) : ( <p className="text-gray-600">Anda harus <a href="/login" className="text-blue-600 font-bold hover:underline">login</a> untuk memberikan ulasan.</p> )}
+                        ) : ( <p className="text-gray-600">Anda harus <Link href="/login" className="text-blue-600 font-bold hover:underline">login</Link> untuk memberikan ulasan.</p> )}
                     </div>
                 </div>
             </div>

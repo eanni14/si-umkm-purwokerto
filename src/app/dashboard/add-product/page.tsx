@@ -11,7 +11,7 @@ export default function AddProductPage() {
   const [productName, setProductName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
-  const [imageUrl, setImageUrl] = useState(''); // State untuk URL gambar
+  const [imageUrl, setImageUrl] = useState('');
   const [csrfToken, setCsrfToken] = useState('');
   
   const [loading, setLoading] = useState(false);
@@ -67,7 +67,7 @@ export default function AddProductPage() {
           ownerId: user.uid,
           storeName: user.email,
           csrfToken: csrfToken,
-          imageUrl: imageUrl, // Kirim URL gambar
+          imageUrl: imageUrl,
         }),
       });
 
@@ -78,9 +78,14 @@ export default function AddProductPage() {
       setProductName('');
       setDescription('');
       setPrice('');
-      setImageUrl(''); // Kosongkan URL setelah berhasil
-    } catch (err: any) {
-      setError(err.message);
+      setImageUrl('');
+    // PERBAIKAN: Mengganti 'any' dengan 'unknown'
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Terjadi kesalahan yang tidak diketahui.");
+      }
     } finally {
       setLoading(false);
     }
@@ -102,13 +107,13 @@ export default function AddProductPage() {
             <label htmlFor="productName" className="text-sm font-medium text-gray-700">Nama Produk</label>
             <input id="productName" type="text" value={productName} onChange={(e) => setProductName(e.target.value)} className="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Contoh: Kopi Robusta Premium" required />
           </div>
-          {/* PERUBAHAN: Input untuk URL Gambar */}
           <div>
             <label htmlFor="imageUrl" className="text-sm font-medium text-gray-700">URL Gambar Produk</label>
             <input id="imageUrl" type="url" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} className="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="https://... (Contoh: dari Imgur, Postimages, dll)" required />
             {imageUrl && (
                 <div className="mt-2">
                     <p className="text-xs text-gray-500">Pratinjau:</p>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={imageUrl} alt="Pratinjau Gambar" className="mt-2 rounded-md max-h-40 border" onError={(e) => e.currentTarget.style.display='none'} onLoad={(e) => e.currentTarget.style.display='block'} />
                 </div>
             )}

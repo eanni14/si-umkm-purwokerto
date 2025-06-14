@@ -2,7 +2,7 @@
 
 import { useState, useEffect, FormEvent } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { useRouter, useParams } from 'next/navigation';
+import { useParams } from 'next/navigation'; // PERBAIKAN: Hapus useRouter yang tidak terpakai
 
 type ProductData = {
     name: string;
@@ -12,7 +12,6 @@ type ProductData = {
 
 export default function EditProductPage() {
     const { user } = useAuth();
-    const router = useRouter();
     const params = useParams();
     const productId = params.productId as string;
 
@@ -38,8 +37,10 @@ export default function EditProductPage() {
                     description: data.description,
                     price: data.price.toString(),
                 });
-            } catch (err: any) {
-                setError(err.message);
+            // PERBAIKAN: Mengganti 'any' dengan 'unknown'
+            } catch (err: unknown) {
+                if(err instanceof Error) setError(err.message);
+                else setError("Terjadi kesalahan yang tidak diketahui");
             } finally {
                 setLoading(false);
             }
@@ -64,8 +65,10 @@ export default function EditProductPage() {
             });
             if (!response.ok) throw new Error('Gagal memperbarui produk.');
             setSuccess('Produk berhasil diperbarui!');
-        } catch (err: any) {
-            setError(err.message);
+        // PERBAIKAN: Mengganti 'any' dengan 'unknown'
+        } catch (err: unknown) {
+            if(err instanceof Error) setError(err.message);
+            else setError("Terjadi kesalahan yang tidak diketahui");
         } finally {
             setLoading(false);
         }

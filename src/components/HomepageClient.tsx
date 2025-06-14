@@ -1,26 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image'; // Impor Image
+import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useLazyQuery, gql } from '@apollo/client';
 import type { Product } from '@/types/product';
 import ProductCard from './ProductCard';
+import Image from 'next/image'; // PERBAIKAN: Memastikan Image diimpor dari next/image
 
-// PERUBAHAN: Meminta imageUrl dalam query
 const SEARCH_PRODUCTS_QUERY = gql`
   query SearchProducts($term: String!) {
     searchProducts(term: $term) {
-      id
-      name
-      price
-      storeName
-      imageUrl 
+      id name price storeName imageUrl 
     }
   }
 `;
-
-// PERUBAHAN: Menambahkan imageUrl ke dalam tipe
 type SearchedProduct = Pick<Product, 'id' | 'name' | 'price' | 'storeName' | 'imageUrl'>;
 
 const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode; title: string; description: string; }) => (
@@ -35,10 +29,7 @@ export default function HomepageClient({ initialProducts }: { initialProducts: P
   const { user, logout } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   
-  const [
-    search, 
-    { loading: searchLoading, error: searchError, data: searchData }
-  ] = useLazyQuery(SEARCH_PRODUCTS_QUERY);
+  const [ search, { loading: searchLoading, error: searchError, data: searchData }] = useLazyQuery(SEARCH_PRODUCTS_QUERY);
 
   const handleSearch = () => {
     if (searchQuery.trim() !== '') {
@@ -50,7 +41,7 @@ export default function HomepageClient({ initialProducts }: { initialProducts: P
     <div className="bg-gray-50 min-h-screen font-sans">
       <header className="bg-white shadow-sm sticky top-0 z-50">
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <a href="/" className="text-2xl font-bold text-blue-600">Si-UMKM Purwokerto</a>
+          <Link href="/" className="text-2xl font-bold text-blue-600">Si-UMKM Purwokerto</Link>
           <nav className="hidden md:flex items-center space-x-6">
             <a href="#features" className="text-gray-600 hover:text-blue-600 transition-colors">Fitur</a>
             <a href="#products" className="text-gray-600 hover:text-blue-600 transition-colors">Produk Unggulan</a>
@@ -59,11 +50,11 @@ export default function HomepageClient({ initialProducts }: { initialProducts: P
           <div>
             {user ? (
               <div className="flex items-center space-x-4">
-                <a href="/profil" className="font-medium text-gray-700 hover:text-blue-600">Hi, {user.email?.split('@')[0]}</a>
-                <a href="/dashboard/my-products" className="font-medium text-blue-600 hover:text-blue-800">Dashboard</a>
+                <Link href="/profil" className="font-medium text-gray-700 hover:text-blue-600">Hi, {user.email?.split('@')[0]}</Link>
+                <Link href="/dashboard/my-products" className="font-medium text-blue-600 hover:text-blue-800">Dashboard</Link>
                 <button onClick={logout} className="bg-red-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">Keluar</button>
               </div>
-            ) : ( <a href="/login" className="bg-blue-600 text-white font-semibold px-5 py-2 rounded-lg hover:bg-blue-700 transition-colors">Masuk / Daftar</a> )}
+            ) : ( <Link href="/login" className="bg-blue-600 text-white font-semibold px-5 py-2 rounded-lg hover:bg-blue-700 transition-colors">Masuk / Daftar</Link> )}
           </div>
         </div>
       </header>
@@ -76,9 +67,7 @@ export default function HomepageClient({ initialProducts }: { initialProducts: P
             <div className="max-w-2xl mx-auto">
                 <div className="relative">
                     <input type="search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Cari produk atau program pelatihan..." className="w-full p-4 pr-20 rounded-lg border-2 border-gray-300 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400" />
-                    <button onClick={handleSearch} disabled={searchLoading} className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-yellow-400 text-blue-900 font-semibold px-4 py-2 rounded-md hover:bg-yellow-500 disabled:bg-gray-400">
-                      {searchLoading ? '...' : 'Cari'}
-                    </button>
+                    <button onClick={handleSearch} disabled={searchLoading} className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-yellow-400 text-blue-900 font-semibold px-4 py-2 rounded-md hover:bg-yellow-500 disabled:bg-gray-400">{searchLoading ? '...' : 'Cari'}</button>
                 </div>
             </div>
           </div>
@@ -92,27 +81,29 @@ export default function HomepageClient({ initialProducts }: { initialProducts: P
               {searchError && <p className="text-center text-red-500">Error: {searchError.message}</p>}
               {searchData && (
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                  {searchData.searchProducts.length === 0 ? (
-                    <p className="col-span-full text-center text-gray-500">Produk tidak ditemukan.</p>
-                  ) : (
-                    // PERUBAHAN: Merender hasil pencarian menjadi kartu dengan gambar
+                  {searchData.searchProducts.length === 0 ? (<p className="col-span-full text-center text-gray-500">Produk tidak ditemukan.</p>) : (
                     searchData.searchProducts.map((product: SearchedProduct) => (
-                      <a href={`/produk/${product.id}`} key={product.id} className="block group">
+                      <Link href={`/produk/${product.id}`} key={product.id} className="block group">
                         <div className="bg-white rounded-lg shadow-md p-4 transition-shadow duration-300 group-hover:shadow-xl h-full flex flex-col">
                           <div className="relative w-full h-32 mb-3 rounded-md overflow-hidden">
-                            <Image
-                              src={product.imageUrl || `https://placehold.co/400x300/e2e8f0/334155?text=${encodeURIComponent(product.name)}`}
-                              alt={product.name}
-                              layout="fill"
-                              objectFit="cover"
-                              onError={(e) => { e.currentTarget.src = `https://placehold.co/400x300/e2e8f0/334155?text=Error`; }}
-                            />
+                            { product.imageUrl && (
+                              <Image 
+                                src={product.imageUrl} 
+                                alt={product.name} 
+                                layout="fill" 
+                                objectFit="cover" 
+                                // PERBAIKAN: Memberikan tipe yang benar pada event handler
+                                onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => { 
+                                  e.currentTarget.src = `https://placehold.co/400x300/e2e8f0/334155?text=Error`; 
+                                }}
+                              />
+                            )}
                           </div>
                           <h3 className="font-bold text-gray-900 truncate group-hover:text-blue-600">{product.name}</h3>
                           <p className="text-sm text-gray-700">{product.storeName}</p>
                           <p className="mt-2 font-semibold text-gray-900">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(product.price)}</p>
                         </div>
-                      </a>
+                      </Link>
                     ))
                   )}
                 </div>
@@ -132,9 +123,7 @@ export default function HomepageClient({ initialProducts }: { initialProducts: P
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
                     {initialProducts.map(product => <ProductCard key={product.id} {...product} />)}
                 </div>
-            ) : (
-                <p className="text-center text-gray-500">Belum ada produk yang ditambahkan.</p>
-            )}
+            ) : (<p className="text-center text-gray-500">Belum ada produk yang ditambahkan.</p>)}
           </div>
         </section>
         
@@ -148,3 +137,4 @@ export default function HomepageClient({ initialProducts }: { initialProducts: P
     </div>
   )
 }
+

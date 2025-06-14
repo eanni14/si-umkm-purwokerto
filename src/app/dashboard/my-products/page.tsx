@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '../../../context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { auth } from '../../../lib/firebase';
+import { auth } from '@/lib/firebase';
+import Link from 'next/link'; // PERBAIKAN: Impor Link
 
-// Definisikan tipe untuk objek produk
 type Product = {
   id: string;
   name: string;
@@ -13,12 +13,12 @@ type Product = {
   description: string;
 };
 
-// Komponen Modal Konfirmasi Hapus
 const DeleteConfirmationModal = ({ product, onConfirm, onCancel }: { product: Product, onConfirm: () => void, onCancel: () => void }) => (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
         <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-sm mx-4">
             <h2 className="text-lg font-bold">Konfirmasi Hapus</h2>
-            <p className="my-4">Apakah Anda yakin ingin menghapus produk "{product.name}"?</p>
+            {/* PERBAIKAN: Menggunakan tanda kutip yang benar */}
+            <p className="my-4">Apakah Anda yakin ingin menghapus produk &ldquo;{product.name}&rdquo;?</p>
             <div className="flex justify-end space-x-4">
                 <button onClick={onCancel} className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300">Batal</button>
                 <button onClick={onConfirm} className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">Hapus</button>
@@ -35,7 +35,7 @@ export default function MyProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [productToDelete, setProductToDelete] = useState<Product | null>(null); // State untuk modal
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -46,8 +46,9 @@ export default function MyProductsPage() {
           if (!response.ok) throw new Error('Gagal mengambil data produk.');
           const data = await response.json();
           setProducts(data);
-        } catch (err: any) {
-          setError(err.message);
+        // PERBAIKAN: Mengganti 'any' dengan 'unknown'
+        } catch (err: unknown) {
+          if(err instanceof Error) setError(err.message);
         } finally {
           setLoading(false);
         }
@@ -67,18 +68,15 @@ export default function MyProductsPage() {
     try {
       const response = await fetch(`/api/products/${productToDelete.id}`, {
         method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user?.uid }), // Tambahkan '?.' untuk keamanan
       });
-
-      if (!response.ok) {
-        throw new Error('Gagal menghapus produk.');
-      }
-
-      // Hapus produk dari state agar UI terupdate
+      if (!response.ok) throw new Error('Gagal menghapus produk.');
       setProducts(products.filter(p => p.id !== productToDelete.id));
-      setProductToDelete(null); // Tutup modal
-
-    } catch (err: any) {
-      setError(err.message);
+      setProductToDelete(null);
+    // PERBAIKAN: Mengganti 'any' dengan 'unknown'
+    } catch (err: unknown) {
+      if(err instanceof Error) setError(err.message);
       setProductToDelete(null);
     }
   };
@@ -86,7 +84,6 @@ export default function MyProductsPage() {
   if (loading) return <div className="text-center mt-20">Memuat data produk...</div>;
   if (!user && !loading) return <div className="text-center mt-20">Mengalihkan ke halaman login...</div>;
   
-
   return (
     <>
       {productToDelete && (
@@ -102,15 +99,15 @@ export default function MyProductsPage() {
           <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Produk Saya</h1>
             <div className="flex items-center gap-2 sm:gap-4">
-              <a href="/dashboard/add-product" className="text-sm sm:text-base bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap">
+              <Link href="/dashboard/add-product" className="text-sm sm:text-base bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap">
                 + Tambah Produk
-              </a>
-              <a href="/" className="text-sm sm:text-base text-blue-600 hover:underline whitespace-nowrap">
+              </Link>
+              {/* PERBAIKAN: Menggunakan Link */}
+              <Link href="/" className="text-sm sm:text-base text-blue-600 hover:underline whitespace-nowrap">
                 &larr; Beranda
-              </a>
+              </Link>
             </div>
           </div>
-          
           <div className="bg-white rounded-xl shadow-lg overflow-x-auto">
             {products.length === 0 ? (
               <p className="text-center p-8 text-gray-500">Anda belum memiliki produk.</p>
@@ -129,8 +126,7 @@ export default function MyProductsPage() {
                       <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm font-medium text-gray-900">{product.name}</div></td>
                       <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-900">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(product.price)}</div></td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        {/* Tombol Edit menjadi link */}
-                        <a href={`/dashboard/edit-product/${product.id}`} className="text-indigo-600 hover:text-indigo-900">Edit</a>
+                        <Link href={`/dashboard/edit-product/${product.id}`} className="text-indigo-600 hover:text-indigo-900">Edit</Link>
                         <button onClick={() => setProductToDelete(product)} className="ml-4 text-red-600 hover:text-red-900">Hapus</button>
                       </td>
                     </tr>

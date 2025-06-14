@@ -1,3 +1,5 @@
+import { Timestamp } from "firebase/firestore";
+
 export type Product = {
     id: string;
     name: string;
@@ -6,7 +8,8 @@ export type Product = {
     storeName: string;
     ownerId: string;
     imageUrl?: string;
-    reviewCount?: number; // Tambahkan ini
-    averageRating?: number; // Tambahkan ini
-    createdAt?: any;
+    reviewCount?: number;
+    averageRating?: number;
+    // PERBAIKAN: Mengganti 'any' dengan tipe Timestamp yang lebih spesifik
+    createdAt?: Timestamp;
 };

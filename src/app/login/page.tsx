@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import type { FormEvent, ChangeEvent } from 'react';
+import { useState, FormEvent, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   createUserWithEmailAndPassword, 
@@ -9,7 +8,9 @@ import {
   GoogleAuthProvider, 
   signInWithPopup 
 } from 'firebase/auth';
-import { auth } from '../../lib/firebase';
+import { auth } from '@/lib/firebase';
+import Link from 'next/link'; // PERBAIKAN: Impor Link
+import Image from 'next/image'; // PERBAIKAN: Impor Image
 
 export default function LoginPage() {
   const router = useRouter();
@@ -48,8 +49,15 @@ export default function LoginPage() {
         setEmail('');
         setPassword('');
       }
-    } catch (err: any) {
-      setError(getFirebaseErrorMessage(err.code));
+    // PERBAIKAN: Mengganti 'any' dengan 'unknown'
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        // Firebase error memiliki properti 'code'
+        const firebaseError = err as { code?: string };
+        setError(getFirebaseErrorMessage(firebaseError.code || ''));
+      } else {
+        setError('Terjadi kesalahan yang tidak diketahui.');
+      }
     } finally {
       setLoading(false);
     }
@@ -63,8 +71,14 @@ export default function LoginPage() {
     try {
       await signInWithPopup(auth, provider);
       router.push('/');
-    } catch (err: any) {
-      setError(getFirebaseErrorMessage(err.code));
+    // PERBAIKAN: Mengganti 'any' dengan 'unknown'
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        const firebaseError = err as { code?: string };
+        setError(getFirebaseErrorMessage(firebaseError.code || ''));
+      } else {
+        setError('Terjadi kesalahan yang tidak diketahui.');
+      }
     } finally {
       setLoading(false);
     }
@@ -74,7 +88,8 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gray-100 flex flex-col justify-center items-center font-sans">
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-xl shadow-lg">
         <div className="text-center">
-            <h1 className="text-3xl font-bold text-gray-900"><a href="/">Si-UMKM</a></h1>
+            {/* PERBAIKAN: Menggunakan Link */}
+            <h1 className="text-3xl font-bold text-gray-900"><Link href="/">Si-UMKM Purwokerto</Link></h1>
             <p className="mt-2 text-gray-600">{isLoginView ? 'Selamat datang kembali!' : 'Buat akun baru Anda'}</p>
         </div>
         
@@ -109,7 +124,8 @@ export default function LoginPage() {
 
         <div>
           <button onClick={handleGoogleSignIn} className="w-full inline-flex justify-center items-center py-2.5 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-            <img className="w-5 h-5 mr-3" src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" />
+            {/* PERBAIKAN: Menggunakan Image */}
+            <Image className="w-5 h-5 mr-3" src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" width={20} height={20} />
             Lanjutkan dengan Google
           </button>
         </div>
