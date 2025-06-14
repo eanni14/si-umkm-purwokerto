@@ -9,13 +9,10 @@ import { JSDOM } from 'jsdom';
 const window = new JSDOM('').window;
 const purify = DOMPurify(window);
 
-// PERBAIKAN: Menghapus tipe RouteContext yang custom
-
 // Handler untuk GET (Mengambil satu produk)
-// PERBAIKAN: Mendefinisikan tipe parameter secara inline
 export async function GET(
   request: NextRequest,
-  { params }: { params: { productId: string } }
+  { params }: { params: { productId: string } } // PERBAIKAN FINAL: Menggunakan destructuring langsung dengan tipe inline
 ) {
   try {
     const { productId } = params;
@@ -41,7 +38,7 @@ export async function GET(
 // Handler untuk PUT (Memperbarui produk)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { productId: string } }
+  { params }: { params: { productId: string } } // PERBAIKAN FINAL
 ) {
   try {
     const { productId } = params;
@@ -76,7 +73,7 @@ export async function PUT(
 // Handler untuk metode DELETE
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { productId: string } }
+  { params }: { params: { productId: string } } // PERBAIKAN FINAL
 ) {
   try {
     const { productId } = params;
