@@ -1,18 +1,26 @@
 // src/app/api/products/[productId]/route.ts
 
-import { NextResponse, NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import DOMPurify from 'dompurify';
 import { JSDOM } from 'jsdom';
 
+// Setup DOMPurify untuk sanitasi
 const window = new JSDOM('').window;
 const purify = DOMPurify(window);
 
-/// GET - ambil satu produk
-export async function GET(req: NextRequest, context: { params: { productId: string } }) {
+// Tipe context Next.js
+type Context = { params: { productId: string } };
+
+// Handler GET (ambil 1 produk)
+export async function GET(
+  req: NextRequest,
+  context: Context
+) {
   try {
     const { productId } = context.params;
+
     if (!productId) {
       return NextResponse.json({ message: 'Product ID tidak ditemukan' }, { status: 400 });
     }
@@ -32,17 +40,23 @@ export async function GET(req: NextRequest, context: { params: { productId: stri
   }
 }
 
-// Handler untuk PUT (Memperbarui produk)
-export async function PUT(req: NextRequest, context: { params: { productId: string } }) {
+// Handler PUT (update produk)
+export async function PUT(
+  req: NextRequest,
+  context: Context
+) {
   try {
     const { productId } = context.params;
     const body = await req.json();
     const { name, description, price } = body;
 
-    if (!productId || !name || !description || !price) {
-      return NextResponse.json({ message: 'Data tidak lengkap' }, { status: 400 });
+    if (!productId) {
+      return NextResponse.json({ message: 'Product ID tidak ditemukan' }, { status: 400 });
     }
 
+    if (!name || !description || !price) {
+      return NextResponse.json({ message: 'Data tidak lengkap' }, { status: 400 });
+    }
 
     const sanitizedName = purify.sanitize(name);
     const sanitizedDescription = purify.sanitize(description);
@@ -62,10 +76,14 @@ export async function PUT(req: NextRequest, context: { params: { productId: stri
   }
 }
 
-// Handler untuk metode DELETE
-export async function DELETE(req: NextRequest, context: { params: { productId: string } }) {
+// Handler DELETE (hapus produk)
+export async function DELETE(
+  req: NextRequest,
+  context: Context
+) {
   try {
     const { productId } = context.params;
+
     if (!productId) {
       return NextResponse.json({ message: 'Product ID tidak ditemukan' }, { status: 400 });
     }
@@ -74,10 +92,9 @@ export async function DELETE(req: NextRequest, context: { params: { productId: s
     await deleteDoc(productRef);
 
     return NextResponse.json({ message: 'Produk berhasil dihapus' }, { status: 200 });
-  
+
   } catch (error: unknown) {
     console.error("Error deleting document:", error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
-  
