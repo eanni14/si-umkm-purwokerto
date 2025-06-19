@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useLazyQuery, gql } from '@apollo/client';
 import type { Product } from '@/types/product';
 import ProductCard from './ProductCard';
-import Image from 'next/image'; // PERBAIKAN: Memastikan Image diimpor dari next/image
+import Image from 'next/image';
 
 const SEARCH_PRODUCTS_QUERY = gql`
   query SearchProducts($term: String!) {
@@ -92,7 +92,6 @@ export default function HomepageClient({ initialProducts }: { initialProducts: P
                                 alt={product.name} 
                                 layout="fill" 
                                 objectFit="cover" 
-                                // PERBAIKAN: Memberikan tipe yang benar pada event handler
                                 onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => { 
                                   e.currentTarget.src = `https://placehold.co/400x300/e2e8f0/334155?text=Error`; 
                                 }}
@@ -112,8 +111,16 @@ export default function HomepageClient({ initialProducts }: { initialProducts: P
           </section>
         )}
 
+        {/* PERBAIKAN: Memastikan format JSX benar */}
         <section id="features" className="py-20 bg-gray-50">
-          <div className="container mx-auto px-6"><h2 className="text-3xl font-bold text-center text-gray-800 mb-12">Kenapa Memilih Si-UMKM?</h2><div className="grid md:grid-cols-3 gap-8"><FeatureCard icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>} title="Publikasi Produk Mudah" description="Daftarkan dan tampilkan produk Anda ke jutaan calon pembeli dengan beberapa klik saja." /><FeatureCard icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.184-1.268-.5-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.184-1.268.5-1.857m0 0a5.002 5.002 0 019 0" /></svg>} title="Program Pembinaan" description="Akses jadwal dan materi pelatihan resmi dari pemerintah untuk meningkatkan skill bisnis Anda." /><FeatureCard icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>} title="Ulasan & Rating Terpercaya" description="Bangun reputasi usaha Anda melalui sistem ulasan dan rating yang transparan dari pelanggan." /></div></div>
+          <div className="container mx-auto px-6">
+            <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">Kenapa Memilih Si-UMKM?</h2>
+            <div className="grid md:grid-cols-3 gap-8">
+              <FeatureCard icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>} title="Publikasi Produk Mudah" description="Daftarkan dan tampilkan produk Anda ke jutaan calon pembeli dengan beberapa klik saja." />
+              <FeatureCard icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.184-1.268-.5-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.184-1.268.5-1.857m0 0a5.002 5.002 0 019 0" /></svg>} title="Program Pembinaan" description="Akses jadwal dan materi pelatihan resmi dari pemerintah untuk meningkatkan skill bisnis Anda." />
+              <FeatureCard icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>} title="Ulasan & Rating Terpercaya" description="Bangun reputasi usaha Anda melalui sistem ulasan dan rating yang transparan dari pelanggan." />
+            </div>
+          </div>
         </section>
         
         <section id="products" className="py-20 bg-white">
@@ -137,4 +144,3 @@ export default function HomepageClient({ initialProducts }: { initialProducts: P
     </div>
   )
 }
-
